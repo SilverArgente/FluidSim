@@ -30,7 +30,7 @@ const unsigned int width = 800;
 const unsigned int height = 800;
 float size = 1;
 
-int s = (N + 2) * (N + 2) * (N + 2) * 8;
+int s = (N + 2) * (N + 2) * 8;
 int m = 0;
 int t = 20 * 20 * 20 * 8;
 GLfloat* vertices = new GLfloat[s];
@@ -103,40 +103,37 @@ void draw_dens(FluidSimulation& fluidSim, Shader& shaderProgram)
 	// iterate over all densities
 	// assign a point to said density
 	// render point on screen
-
+	
 	for (int i = 0; i < N + 2; i++) {
 		for (int j = 0; j < N + 2; j++) {
-			for (int k = 0; k < N + 2; k++) {
-
-				float density = fluidSim.dens[IX(i, j, k)];
+			float density = fluidSim.dens[IX(i, j)];
 				
-				if (density > 0)
-				{
-					float x = (i / (float)(N + 2)) * 2.0f - 1.0f;
-					float y = (j / (float)(N + 2)) * 2.0f - 1.0f; // Normalized y
-					float z = (k / (float)(N + 2)) * 2.0f - 1.0f; // Normalized z
+			if (density > 0)
+			{
+				float x = (i / (float)(N + 2)) * 2.0f - 1.0f;
+				float y = (j / (float)(N + 2)) * 2.0f - 1.0f; // Normalized y
 					
-					vertices[m++] = x;
-					vertices[m++] = y;
-					vertices[m++] = z;
-					vertices[m++] = 0.83f;
-					vertices[m++] = 0.70f;
-					vertices[m++] = 0.44f;
-					vertices[m++] = 0.0f;
-					vertices[m++] = 0.0f;
-				}
+				vertices[m++] = x;
+				vertices[m++] = y;
+				vertices[m++] = 0.0f;
+				vertices[m++] = 0.83f;
+				vertices[m++] = 0.70f;
+				vertices[m++] = 0.44f;
+				vertices[m++] = 0.0f;
+				vertices[m++] = 0.0f;
 			}
 		}
 	}
+
 	GLint opacityLoc = glGetUniformLocation(shaderProgram.ID, "opacity");
-	float newOpacity = 0.1f;
+	float newOpacity = 1.0f;
 	glUniform1f(opacityLoc, newOpacity);
 	// Create a VBO with the vertex positions
 	VBO vbo(vertices, s * sizeof(GLfloat));
 	vao.Bind(); // Bind the VAO
 	vao.LinkAttrib(vbo, 0, 3, GL_FLOAT, sizeof(GLfloat) * 8, (void*)0);
 
-	glPointSize(20);
+	glPointSize(5);
 
 	glDrawArrays(GL_POINTS, 0, s / 8);
 
@@ -277,19 +274,12 @@ int main()
 		brickTex.Bind();
 		VAO1.Bind();
 
-		fluidSim.dens = new float[s/8];
-		fluidSim.dens_prev = new float[s/8];
-		fluidSim.vel_x = new float[s/8];
-		fluidSim.vel_y = new float[s/8];
-		fluidSim.vel_z = new float[s/8];
-
 		for (int i = 0; i < N + 2; i++) {
 			for (int j = 0; j < N + 2; j++) {
 				for (int k = 0; k < N + 2; k++) {
 					// Randomize velocity directions in 3D
 					fluidSim.vel_x[IX(i, j, k)] = ((rand() % 100) / 100.0f - 0.5f) * 0.1f;
 					fluidSim.vel_y[IX(i, j, k)] = ((rand() % 100) / 100.0f - 0.5f) * 0.1f;
-					fluidSim.vel_z[IX(i, j, k)] = ((rand() % 100) / 100.0f - 0.5f) * 0.1f;
 
 					// Randomize density
 					fluidSim.dens[IX(i, j, k)] = (rand() % 100) / 100.0f * 0.5f;
@@ -297,9 +287,8 @@ int main()
 			}
 		}
 		
-		//fluidSim.vel_step(N, fluidSim.vel_x, fluidSim.vel_y, fluidSim.vel_z, fluidSim.vel_x_prev, fluidSim.vel_y_prev, fluidSim.vel_z_prev, 0.6f, 0.6f);
-		//fluidSim.vel_step(N,)
-		//fluidSim.dens_step(N, fluidSim.dens, fluidSim.dens_prev, fluidSim.vel_x, fluidSim.vel_y, fluidSim.vel_z, 0.5, 0.6f);
+		//fluidSim.vel_step(N, fluidSim.vel_x, fluidSim.vel_y, fluidSim.vel_x_prev, fluidSim.vel_y_prev, 0.6f, 0.6f);
+		//fluidSim.dens_step(N, fluidSim.dens, fluidSim.dens_prev, fluidSim.vel_x, fluidSim.vel_y, 0.5, 0.6f);
 		draw_dens(fluidSim, shaderProgram);
 		// generateRandom(shaderProgram, 100);
 
